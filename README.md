@@ -1,0 +1,26 @@
+# arm_now_docker
+Dockerization of the arm_now tool
+
+# Overview
+This is basically a docker wrapper around the `arm_now` util. Call it directly or use the following bash function to run arm_now.
+
+```bash
+function arm_now() {
+
+    DOCKER_REDIR=""
+    for i in "$@"
+        do
+        if [[ $i = "--redir="* ]]; then
+            REDIR=`echo $i | cut -f 2 -d "="`
+            # tcp:8000::80
+            PROTO=`echo $REDIR | cut -f 1 -d ":"`
+            OUT=`echo $REDIR | cut -f 2 -d ":"`
+            IN=`echo $REDIR | cut -f 4 -d ":"`
+            # OUT->OUT for docker, OUT->IN for qemu
+            DOCKER_REDIR="$DOCKER_REDIR -p $OUT:$OUT/$PROTO"
+        fi
+    done
+
+    sudo docker run -it --name arm_now -v "$PWD":/mount $DOCKER_REDIR --rm bannsec/arm_now_docker arm_now $@
+}
+```
